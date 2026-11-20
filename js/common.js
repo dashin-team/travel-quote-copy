@@ -524,7 +524,7 @@
     }
     var childQ = isChildQuote(quote);
     if (childQ) {
-      if (anyLife) notes.push('未滿15足歲：人壽主約為富邦人壽兒童傷害醫療旅行平安保險 MRC 60萬（傷害醫療每一事故最高），不提供 AT1 意外身故；另含海外突發疾病 OH1 及 OAA。');
+      if (anyLife) notes.push('未滿15足歲：人壽主約為富邦人壽兒童傷害醫療旅行平安保險 MRC 60萬（傷害醫療每一事故最高），不提供 AT1 意外身故；另含海外突發疾病 OH1' + (quote.lifeRegion === 'other' ? '' : ' 及 OAA') + '。');
       if (anyProp) notes.push(cardQ ? '產險：未滿15足歲適用新快樂旅平卡兒童組合（無身故及失能保障）。' : '產險：未滿15足歲適用新快樂旅綜+ 兒童方案；依 DM「針對未滿15足歲之被保險人，本保險契約無提供意外死亡之喪葬費用保險金」。');
     }
     if (anyLife) {
