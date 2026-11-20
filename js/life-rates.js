@@ -74,10 +74,11 @@
     return 'other';
   }
 
-  /* OAA（海外醫療專機運送附約）保費拆分 — GPTA 旅平險保費簡易查詢 2026-11-20 實測（日本、35歲、AT1 500萬、OH1 50萬、MR 50萬）。
-   * 「國外其他」無 OAA：保費 = 亞洲14國表（含 OAA）− OAA（實測 美國／法國 7天 = 982 − 302 = 680）。
-   * 僅列實測過的天數；其他天數不推估。假設 OAA 保費只與天數有關（與 AT1 無關），尚待用其他 AT1 驗證。 */
-  var OAA_BY_DAYS = { 1: 141, 7: 302, 15: 415, 30: 583 };
+  /* OAA（海外醫療專機運送附約）保費 — GPTA 旅平險保費簡易查詢 2026-11-20 實測：
+   * OAA(天數) = 亞洲14國（含 OAA）− 國外其他（無 OAA），以 AT1 500萬／OH1 50萬／MR 50萬、18～65歲 1～30 天逐日實測求得。
+   * 已驗證 OAA 只與天數有關、與 AT1 無關（AT1 300／1000萬 7、15天實測相符），未滿15歲亦同（7天 778−302＝476）。
+   * 「國外其他」或「OAA 不投保」保費 = 離線表（含 OAA）− OAA(天數)。 */
+  var OAA_BY_DAYS = {"1":141,"2":147,"3":165,"4":212,"5":262,"6":290,"7":302,"8":314,"9":328,"10":344,"11":357,"12":372,"13":388,"14":402,"15":415,"16":430,"17":443,"18":456,"19":471,"20":485,"21":499,"22":508,"23":518,"24":527,"25":537,"26":546,"27":554,"28":564,"29":574,"30":583};
 
   function effectiveOh1Mr(life) {
     var at1 = Number(life && life.at1Wan);
@@ -113,14 +114,13 @@
       if (!isFinite(days) || days <= 0) return { found: false, tip: '請先填投保天數' };
       if (rateType !== 'agency') return { found: false, tip: '尚無此費率類型（' + rateType + '）。' + cover15 + '；請用 GPTA 試算後手填' };
       if (region !== 'asia14') return { found: false, tip: '尚無「' + region + '」地區未滿15歲費率（OAA 亦僅限亞洲14國）。' + cover15 + '；請用 GPTA 試算後手填' };
-      if (minusOaa) return { found: false, tip: (otherRegion ? '國外其他（非亞洲14國）' : 'OAA 不投保') + '之未滿15歲費率尚未實測（無法確認 OAA 拆分），請用 GPTA 試算後手填' };
-      if (!oaa) return { found: false, tip: '尚無「OAA 不投保」未滿15歲費率。' + cover15 + '；請用 GPTA 試算後手填' };
       if (days > 30) return { found: false, tip: '離線表僅到 30 天，目前 ' + days + ' 天請用 GPTA 試算後手填' };
       for (var u = 0; u < RATES_U15.length; u++) {
         var ru = RATES_U15[u];
         if (Number(ru.days) === days && Number(ru.oh1Wan) === oh) {
-          return { found: true, premium: ru.premium, source: META_U15.source,
-            tip: '自動：' + ru.premium.toLocaleString('en-US') + ' 元（GPTA 未滿15歲／' + days + '天／MRC 60萬＋OH1 ' + oh + '萬' + (otherRegion ? '' : '＋OAA') + regionTag + '）' };
+          var pu = minusOaa ? ru.premium - OAA_BY_DAYS[days] : ru.premium;
+          return { found: true, premium: pu, source: META_U15.source,
+            tip: '自動：' + pu.toLocaleString('en-US') + ' 元（GPTA 未滿15歲／' + days + '天／MRC 60萬＋OH1 ' + oh + '萬' + (minusOaa ? '' : '＋OAA') + regionTag + '）' };
         }
       }
       return { found: false, tip: '尚無此組合費率（未滿15歲／' + days + '天／OH1 ' + oh + '萬）；請用 GPTA 試算後手填' };
