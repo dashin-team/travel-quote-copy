@@ -17,7 +17,7 @@
   var RATES_U15 = [{"days":1,"oh1Wan":60,"premium":358},{"days":2,"oh1Wan":60,"premium":385},{"days":3,"oh1Wan":60,"premium":423},{"days":4,"oh1Wan":60,"premium":547},{"days":5,"oh1Wan":60,"premium":675},{"days":6,"oh1Wan":60,"premium":734},{"days":7,"oh1Wan":60,"premium":778},{"days":8,"oh1Wan":60,"premium":811},{"days":9,"oh1Wan":60,"premium":847},{"days":10,"oh1Wan":60,"premium":885},{"days":11,"oh1Wan":60,"premium":917},{"days":12,"oh1Wan":60,"premium":953},{"days":13,"oh1Wan":60,"premium":991},{"days":14,"oh1Wan":60,"premium":1027},{"days":15,"oh1Wan":60,"premium":1061},{"days":16,"oh1Wan":60,"premium":1098},{"days":17,"oh1Wan":60,"premium":1132},{"days":18,"oh1Wan":60,"premium":1166},{"days":19,"oh1Wan":60,"premium":1202},{"days":20,"oh1Wan":60,"premium":1238},{"days":21,"oh1Wan":60,"premium":1272},{"days":22,"oh1Wan":60,"premium":1296},{"days":23,"oh1Wan":60,"premium":1320},{"days":24,"oh1Wan":60,"premium":1345},{"days":25,"oh1Wan":60,"premium":1369},{"days":26,"oh1Wan":60,"premium":1394},{"days":27,"oh1Wan":60,"premium":1416},{"days":28,"oh1Wan":60,"premium":1441},{"days":29,"oh1Wan":60,"premium":1467},{"days":30,"oh1Wan":60,"premium":1490},{"days":1,"oh1Wan":120,"premium":532},{"days":2,"oh1Wan":120,"premium":575},{"days":3,"oh1Wan":120,"premium":630},{"days":4,"oh1Wan":120,"premium":817},{"days":5,"oh1Wan":120,"premium":1006},{"days":6,"oh1Wan":120,"premium":1091},{"days":7,"oh1Wan":120,"premium":1159},{"days":8,"oh1Wan":120,"premium":1208},{"days":9,"oh1Wan":120,"premium":1261},{"days":10,"oh1Wan":120,"premium":1316},{"days":11,"oh1Wan":120,"premium":1367},{"days":12,"oh1Wan":120,"premium":1420},{"days":13,"oh1Wan":120,"premium":1474},{"days":14,"oh1Wan":120,"premium":1526},{"days":15,"oh1Wan":120,"premium":1578},{"days":16,"oh1Wan":120,"premium":1632},{"days":17,"oh1Wan":120,"premium":1683},{"days":18,"oh1Wan":120,"premium":1731},{"days":19,"oh1Wan":120,"premium":1785},{"days":20,"oh1Wan":120,"premium":1838},{"days":21,"oh1Wan":120,"premium":1890},{"days":22,"oh1Wan":120,"premium":1926},{"days":23,"oh1Wan":120,"premium":1964},{"days":24,"oh1Wan":120,"premium":1999},{"days":25,"oh1Wan":120,"premium":2034},{"days":26,"oh1Wan":120,"premium":2071},{"days":27,"oh1Wan":120,"premium":2106},{"days":28,"oh1Wan":120,"premium":2143},{"days":29,"oh1Wan":120,"premium":2179},{"days":30,"oh1Wan":120,"premium":2215}];
   /*U15-END*/
 
-  var ASIA14 = ['中國', '大陸', '香港', '澳門', '日本', '韓國', '南韓', '越南', '新加坡', '菲律賓', '印尼', '馬來西亞', '緬甸', '泰國', '寮國', '柬埔寨', '帛琉', '馬爾地夫', '亞洲14', '亞洲十四'];
+  var ASIA14 = ['中國', '大陸', '香港', '澳門', '港澳', '日本', '韓國', '南韓', '越南', '新加坡', '菲律賓', '印尼', '馬來西亞', '緬甸', '泰國', '寮國', '柬埔寨', '帛琉', '馬爾地夫', '亞洲14', '亞洲十四'];
 
   /* 亞洲14國（DM 註4／GPTA「國外亞洲14國」）之主要城市／地區＋簡體／英文名。
    * 日本、南韓城市取自 common.js REGION_200 的同國關鍵字；其餘國家補常見旅遊地。英文以單字邊界比對。 */
@@ -48,13 +48,36 @@
     '仰光', '蒲甘', '永珍', '萬象', '万象', '琅勃拉邦', '龍坡邦', '吳哥', '吴哥', '金邊', '金边', '暹粒'
   ];
   var ASIA14_EN = /\b(japan|tokyo|osaka|kyoto|hokkaido|okinawa|nagoya|fukuoka|sapporo|kobe|yokohama|nara|south korea|korea|seoul|busan|jeju|china|beijing|shanghai|guangzhou|shenzhen|xiamen|hong ?kong|macau|macao|vietnam|viet nam|hanoi|ho chi minh|saigon|da ?nang|nha trang|phu quoc|singapore|philippines|manila|cebu|boracay|bohol|palawan|indonesia|bali|jakarta|bintan|lombok|malaysia|kuala lumpur|penang|sabah|kota kinabalu|langkawi|malacca|melaka|myanmar|burma|yangon|bagan|thailand|bangkok|chiang mai|phuket|pattaya|krabi|koh samui|laos|vientiane|luang prabang|cambodia|phnom penh|siem reap|angkor|palau|maldives)\b/i;
+  /* GPTA 旅遊地區（2026-11-20 平台確認）：
+   *  「國外(中國大陸含港澳、日本、南韓、越南、新加坡、菲律賓、印尼、馬來西亞、緬甸、泰國、寮國、柬埔寨、帛琉、馬爾地夫)」→ asia14（可附 OAA）
+   *  「國外(包含上述地區或其他地區)」→ other（無 OAA）。行程只要含任一非亞洲14國地點，就屬 other。 */
+  function isAsia14Text(d) {
+    for (var i = 0; i < ASIA14.length; i++) if (d.indexOf(ASIA14[i]) >= 0) return true;
+    for (var j = 0; j < ASIA14_PLACES.length; j++) if (d.indexOf(ASIA14_PLACES[j]) >= 0) return true;
+    return ASIA14_EN.test(d);
+  }
+  // 明確非亞洲14國的地點（美加 350%、歐洲／紐澳 200% 清單扣掉日韓，再加常見其他地區）
+  var NON_ASIA_EXTRA = ['北韓', '北韩', '朝鮮', '杜拜', '迪拜', '阿聯', '阿联', '阿布達比', '卡達', '杜哈', '沙烏地', '以色列', '約旦', '土耳其', '伊斯坦堡',
+    '埃及', '摩洛哥', '南非', '肯亞', '非洲', '中東', '印度', '斯里蘭卡', '尼泊爾', '不丹', '蒙古', '哈薩克', '烏茲別克', '俄羅斯', '俄罗斯',
+    '墨西哥', '巴西', '秘魯', '阿根廷', '智利', '古巴', '中南美', '南美', '歐洲', '欧洲', '紐澳', '大溪地', '斐濟', '塞班',
+    'dubai', 'uae', 'qatar', 'doha', 'turkey', 'istanbul', 'egypt', 'morocco', 'india', 'nepal', 'mongolia', 'russia', 'mexico', 'brazil', 'peru', 'saipan', 'fiji', 'tahiti', 'europe'];
+  function isNonAsiaText(d) {
+    var T = global.TQ;
+    if (!T || !T.textHasKeyword) return false;
+    var r200 = (T.REGION_200 || []).filter(function (k) { return !isAsia14Text(k); });
+    return T.textHasKeyword(d, T.REGION_350 || []) || T.textHasKeyword(d, r200) || T.textHasKeyword(d, NON_ASIA_EXTRA);
+  }
   function guessLifeRegion(destination) {
     var d = String(destination || '');
-    for (var i = 0; i < ASIA14.length; i++) if (d.indexOf(ASIA14[i]) >= 0) return 'asia14';
-    for (var j = 0; j < ASIA14_PLACES.length; j++) if (d.indexOf(ASIA14_PLACES[j]) >= 0) return 'asia14';
-    if (ASIA14_EN.test(d)) return 'asia14';
+    if (isNonAsiaText(d)) return 'other';
+    if (isAsia14Text(d)) return 'asia14';
     return 'other';
   }
+
+  /* OAA（海外醫療專機運送附約）保費拆分 — GPTA 旅平險保費簡易查詢 2026-11-20 實測（日本、35歲、AT1 500萬、OH1 50萬、MR 50萬）。
+   * 「國外其他」無 OAA：保費 = 亞洲14國表（含 OAA）− OAA（實測 美國／法國 7天 = 982 − 302 = 680）。
+   * 僅列實測過的天數；其他天數不推估。假設 OAA 保費只與天數有關（與 AT1 無關），尚待用其他 AT1 驗證。 */
+  var OAA_BY_DAYS = { 1: 141, 7: 302, 15: 415, 30: 583 };
 
   function effectiveOh1Mr(life) {
     var at1 = Number(life && life.at1Wan);
@@ -73,10 +96,11 @@
     var rateType = quote.lifeRateType || 'agency';
     var region = quote.lifeRegion || guessLifeRegion(quote.destination);
     var oaa = !!life.oaa;
-    // 國外其他（歐洲等）：保費與亞洲14國同表（業務確認），僅保障倍數不同；OAA 僅限亞洲14國 → 以同表（OAA 開）費率計
+    // 國外其他（美加／歐洲／紐澳等）：無 OAA；保費 = 亞洲14國表 − OAA（GPTA 2026-11-20 實測）
     var otherRegion = region === 'other';
+    var minusOaa = otherRegion || (region === 'asia14' && !oaa);
     if (otherRegion) { region = 'asia14'; oaa = true; }
-    var regionTag = otherRegion ? '・國外其他同表' : '';
+    var regionTag = otherRegion ? '・國外其他：亞洲表扣 OAA' : (minusOaa ? '・不含 OAA' : '');
     // 年齡（足歲）優先；舊稿無年齡才用 ageBand
     var ai = (global.TQ && TQ.ageInfo) ? TQ.ageInfo(quote.age) : { set: false, valid: false };
     if (ai.set && !ai.valid) return { found: false, tip: ai.error };
@@ -89,6 +113,7 @@
       if (!isFinite(days) || days <= 0) return { found: false, tip: '請先填投保天數' };
       if (rateType !== 'agency') return { found: false, tip: '尚無此費率類型（' + rateType + '）。' + cover15 + '；請用 GPTA 試算後手填' };
       if (region !== 'asia14') return { found: false, tip: '尚無「' + region + '」地區未滿15歲費率（OAA 亦僅限亞洲14國）。' + cover15 + '；請用 GPTA 試算後手填' };
+      if (minusOaa) return { found: false, tip: (otherRegion ? '國外其他（非亞洲14國）' : 'OAA 不投保') + '之未滿15歲費率尚未實測（無法確認 OAA 拆分），請用 GPTA 試算後手填' };
       if (!oaa) return { found: false, tip: '尚無「OAA 不投保」未滿15歲費率。' + cover15 + '；請用 GPTA 試算後手填' };
       if (days > 30) return { found: false, tip: '離線表僅到 30 天，目前 ' + days + ' 天請用 GPTA 試算後手填' };
       for (var u = 0; u < RATES_U15.length; u++) {
@@ -128,8 +153,8 @@
     if (!adultBand) {
       return { found: false, tip: '尚無年齡帶「' + ageBand + '」費率。' + coverTip + '；請用 GPTA 試算後手填' };
     }
-    if (!oaa) {
-      return { found: false, tip: '尚無「OAA 不投保」費率。' + coverTip + '；請用 GPTA 試算後手填' };
+    if (minusOaa && OAA_BY_DAYS[days] === undefined) {
+      return { found: false, tip: (otherRegion ? '國外其他（無 OAA）' : 'OAA 不投保') + '：目前只有 ' + Object.keys(OAA_BY_DAYS).join('／') + ' 天的 OAA 實測拆分，' + days + ' 天請用 GPTA 試算後手填（禁止推估）' };
     }
     if (days > 30) {
       return { found: false, tip: '離線表僅到 30 天，目前 ' + days + ' 天請用 GPTA 試算後手填' };
@@ -141,12 +166,13 @@
       if (Number(r.at1Wan) !== at1) continue;
       if (Number(r.oh1Wan) !== Number(em.oh1)) continue;
       if (Number(r.mrWan) !== Number(em.mr)) continue;
-      if (!!r.oaa !== oaa) continue;
+      if (!!r.oaa !== true) continue;
+      var prem = minusOaa ? r.premium - OAA_BY_DAYS[days] : r.premium;
       return {
         found: true,
-        premium: r.premium,
+        premium: prem,
         source: META.source,
-        tip: '自動：' + r.premium.toLocaleString('en-US') + ' 元（GPTA 離線表／' + days + '天／AT1 ' + at1 + '萬' + regionTag + '）'
+        tip: '自動：' + prem.toLocaleString('en-US') + ' 元（GPTA 離線表／' + days + '天／AT1 ' + at1 + '萬' + regionTag + '）'
       };
     }
     return {
@@ -168,7 +194,7 @@
     rates: RATES,
     metaU15: META_U15,
     ratesU15: RATES_U15,
-    guessLifeRegion: guessLifeRegion,
+    guessLifeRegion: guessLifeRegion, OAA_BY_DAYS: OAA_BY_DAYS,
     lookupLifePremium: lookupLifePremium,
     listKnownCombos: listKnownCombos,
     ASIA14: ASIA14,

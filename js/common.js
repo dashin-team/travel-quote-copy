@@ -40,7 +40,9 @@
       var k = list[i];
       if (!k) continue;
       if (/[a-z]/i.test(k)) {
-        if (low.indexOf(k.toLowerCase()) >= 0) return true;
+        // 英文需整字比對（避免 'uk' 誤中 'phuket'、'nice' 誤中 'venice'）
+        var re = new RegExp('(^|[^a-z])' + k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])');
+        if (re.test(low)) return true;
       } else if (t.indexOf(k) >= 0) return true;
     }
     return false;
@@ -50,6 +52,8 @@
   var REGION_350 = [
     '美國', '美国', 'usa', 'u.s.a', 'u.s.', 'united states', 'america',
     '加拿大', 'canada', '美加',
+    '美西', '美東', '美东', '美南', '美中', '北美', '加州', '德州', '佛州', '佛羅里達', '佛罗里达', '黃石', '黄石', '大峽谷', '大峡谷',
+    'california', 'texas', 'florida', 'yellowstone',
     '夏威夷', 'hawaii', '關島', '关岛', 'guam', '阿拉斯加', 'alaska',
     '紐約', '纽约', 'new york', '洛杉磯', '洛杉矶', 'los angeles',
     '舊金山', '旧金山', 'san francisco', '拉斯維加斯', '拉斯维加斯', 'las vegas',
@@ -218,7 +222,7 @@
       L.hospital = isSet(life.hospitalYuan) ? num(life.hospitalYuan) : L.oh1 * LIFE_OH1_RATIO.hospital * region;
       L.outpatient = isSet(life.outpatientYuan) ? num(life.outpatientYuan) : L.oh1 * LIFE_OH1_RATIO.outpatient * region;
       L.er = isSet(life.erYuan) ? num(life.erYuan) : L.oh1 * LIFE_OH1_RATIO.er * region;
-      L.oaa = !!life.oaa;
+      L.oaa = !!life.oaa && quote.lifeRegion !== 'other'; // OAA 僅限亞洲14國
       L.premium = num(life.premium);
     } else if (L.enabled) {
       L.at1 = num(life.at1Wan) * 10000;
@@ -227,7 +231,7 @@
       L.hospital = isSet(life.hospitalYuan) ? num(life.hospitalYuan) : L.oh1 * LIFE_OH1_RATIO.hospital * region;
       L.outpatient = isSet(life.outpatientYuan) ? num(life.outpatientYuan) : L.oh1 * LIFE_OH1_RATIO.outpatient * region;
       L.er = isSet(life.erYuan) ? num(life.erYuan) : L.oh1 * LIFE_OH1_RATIO.er * region;
-      L.oaa = !!life.oaa;
+      L.oaa = !!life.oaa && quote.lifeRegion !== 'other'; // OAA 僅限亞洲14國
       L.premium = num(life.premium);
     } else {
       L.at1 = L.oh1 = L.mr = L.hospital = L.outpatient = L.er = L.premium = 0; L.oaa = false;
@@ -920,7 +924,7 @@
 
   global.TQ = {
     LIFE_PRODUCT: LIFE_PRODUCT, PROPERTY_PRODUCT: PROPERTY_PRODUCT,
-    LIFE_OH1_RATIO: LIFE_OH1_RATIO, PROP_RATIO: PROP_RATIO, REGION_OPTIONS: REGION_OPTIONS,
+    LIFE_OH1_RATIO: LIFE_OH1_RATIO, REGION_350: REGION_350, REGION_200: REGION_200, textHasKeyword: textHasKeyword, PROP_RATIO: PROP_RATIO, REGION_OPTIONS: REGION_OPTIONS,
     num: num, isSet: isSet, comma: comma, fmtYuan: fmtYuan, fmtShort: fmtShort,
     guessRegionPct: guessRegionPct, computePlan: computePlan,
     fmtDate: fmtDate, tripTime: tripTime, tripDates: tripDates, daysInclusive: daysInclusive, parseDateParts: parseDateParts,
