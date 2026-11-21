@@ -49,6 +49,7 @@
       h += covLi('海外突發 門診', c.outpatient, '每日最高 ' + TQ.fmtShort(L.outpatient), TQ.fmtShort(P.outpatient));
       h += covLi('海外突發 急診', c.er, '每日最高 ' + TQ.fmtShort(L.er), TQ.fmtShort(P.er));
       h += covLi('意外醫療', c.accidentMedical, L.child ? 'MRC ' + TQ.fmtShort(L.mrc) : TQ.fmtShort(L.mr), TQ.fmtShort(P.accidentMedical));
+      if (on && L.oaa) h += '<li><span class="sum-lab">' + TQ.niceText('海外醫療專機運送（OAA）') + '</span><span class="sum-amtcol"><b>實物給付</b><small class="sum-br">（人壽附約）</small></span></li>';
       h += '</ul>';
       // 不便險：全部列出（產險不投保 → 不顯示）；三欄用 subgrid 讓各區塊（不便險／保費列）水平對齊
       function itemLi(it) {

@@ -176,6 +176,10 @@
         var sa = snapAt1(p.life.at1Wan);
         if (sa != null) p.life.at1Wan = sa;
         else if (!TQ.num(p.life.at1Wan)) p.life.at1Wan = L.at1[idx] || 300;
+        // 舊連結沒有 oaa 旗標 → 亞洲14國視為加保；國外其他不可投保
+        if (p.life.oaa === undefined || p.life.oaa === null) p.life.oaa = q.lifeRegion !== 'other';
+      } else if (p.life && (p.life.oaa === undefined || p.life.oaa === null)) {
+        p.life.oaa = q.lifeRegion !== 'other';
       }
     });
     // 標記排列版（舊連結維持舊排列＝1，避免存成草稿後又被當成舊草稿對調）
@@ -590,7 +594,7 @@
     if (child) {
       h += selectField('人壽（兒童傷害醫療 MRC 60萬＋OH1）', b + '_lifeSel',
         ZERO.concat(TQ.CHILD_OH1_OPTIONS.map(function (v) { return { value: v, label: 'MRC 60萬＋OH1 ' + v + ' 萬' + (v === 60 ? '（預設）' : '（醫療加值）') }; })), {
-        hint: hasLife ? '未滿15歲人壽主約為兒童傷害醫療旅平險 MRC 60萬，不提供AT1；無 MR；OAA 同成人' : '人壽不投保（保費 0，卡片不列人壽保障）', auto: true
+        hint: hasLife ? '未滿15歲人壽主約為兒童傷害醫療旅平險 MRC 60萬，不提供AT1；無 MR；是否加保 OAA 見下方選項' : '人壽不投保（保費 0，卡片不列人壽保障）', auto: true
       });
     } else {
       var cap = ai.valid ? ai.at1Max : 2000;
@@ -599,6 +603,7 @@
           : '人壽不投保（保費 0，卡片不列人壽保障）', auto: true
       });
     }
+    h += oaaToggleHtml(i, hasLife);
     if (TQ.isCardQuote(Q)) {
       var curCard = TQ.resolvePropertyPreset(plan.property, Q);
       var cardOpts;
@@ -643,7 +648,6 @@
         field('MR（萬）', b + 'life.mrWan', { hint: '空白＝AT1×10%', auto: true })) +
       field('人壽保費（元）', b + 'life.premium', { hint: '可手改', auto: true }) +
       '</div>';
-    h += '<label class="check" style="margin-top:8px"><input type="checkbox" data-k="' + b + 'life.oaa"> OAA（限亞洲14國）</label>';
     h += '<div class="grid g3" style="margin-top:8px">' +
       field('人壽住院（元）', b + 'life.hospitalYuan', { hint: '空白＝自動', auto: true }) +
       field('人壽門診每日（元）', b + 'life.outpatientYuan', { hint: '空白＝自動', auto: true }) +
@@ -702,6 +706,44 @@
     var pick = function (want) { for (var i = 0; i < list.length; i++) { var c = list[i]; if (child ? (c.child && c.schengen === want) : (!c.child && c.schengen === want && Number(c.deathWan) === Number(death))) return c; } return null; };
     return pick(sch) || pick(!sch);
   }
+  /** 是否加保 OAA：亞洲14國可勾選（預設加保）；其他地區停用並註明不適用 */
+  function oaaToggleHtml(i, hasLife) {
+    if (!hasLife) return '';
+    var asia = Q.lifeRegion !== 'other';
+    var on = asia && (Q.plans[i].life.oaa !== false);
+    return '<label class="oaa-toggle schengen-toggle' + (asia ? '' : ' is-disabled') + '">' +
+      '<input type="checkbox" data-k="plans.' + i + '.life.oaa"' + (on ? ' checked' : '') + (asia ? '' : ' disabled') + '>' +
+      '<span><span class="st-title">是否加保 OAA（海外醫療專機運送）</span>' +
+      '<span class="st-desc">' + (asia
+        ? '亞洲14國可附加，實物給付；取消勾選則保費扣除 OAA。超過 30 天需手填保費，此項仍決定保障內容是否顯示。'
+        : '此地區不適用 OAA') + '</span></span></label>';
+  }
+  function applyLifeRegion(lr, prev) {
+    if (prev === undefined) prev = Q.lifeRegion;
+    Q.lifeRegion = lr;
+    if (lr !== 'asia14') {
+      Q.plans.forEach(function (p) { if (p.life) p.life.oaa = false; });
+    } else if (prev !== 'asia14') {
+      Q.plans.forEach(function (p) { if (p.life && p.life.enabled) p.life.oaa = true; });
+    }
+    var sel = form.querySelector('[data-k="lifeRegion"]');
+    if (sel) sel.value = lr;
+  }
+  function syncOaaUI() {
+    var asia = Q.lifeRegion !== 'other';
+    Array.prototype.forEach.call(form.querySelectorAll('.oaa-toggle'), function (wrap) {
+      var el = wrap.querySelector('input');
+      if (!el) return;
+      el.disabled = !asia;
+      if (!asia) el.checked = false;
+      wrap.classList.toggle('is-disabled', !asia);
+      var desc = wrap.querySelector('.st-desc');
+      if (desc) desc.textContent = asia
+        ? '亞洲14國可附加，實物給付；取消勾選則保費扣除 OAA。超過 30 天需手填保費，此項仍決定保障內容是否顯示。'
+        : '此地區不適用 OAA';
+    });
+  }
+
   /** 人壽／產險選單目前值：0＝不投保 */
   function selValue(plan, side) {
     var child = TQ.isChildQuote(Q);
@@ -778,6 +820,7 @@
       if (v > 2000) v = 2000;
       if (el.tagName === 'SELECT' || el.type === 'number') el.value = String(v);
     }
+    var prevLifeRegion = Q.lifeRegion;
     setPath(Q, k, v);
 
     // 手動改保費 → 跳過自動覆寫
@@ -806,6 +849,7 @@
         if (abSel) abSel.value = aiR.band;
       }
     }
+    if (k === 'lifeRegion') applyLifeRegion(v || 'asia14', prevLifeRegion);
     if (k === 'age' || k === 'startDate' || k === 'endDate' || k === 'ageBand' || k === 'lifeRegion' || k === 'lifeRateType' || k === 'destination' || k === 'schengen') {
       skipAutoOnce.life = {}; skipAutoOnce.prop = {};
     }
@@ -860,14 +904,7 @@
       }
       // 人壽地區：若已（自動）申根，applySchengenMode 已設 other；否則依目的地猜
       {
-        if (window.LIFE_RATES) {
-          var lr = LIFE_RATES.guessLifeRegion(Q.destination);
-          Q.lifeRegion = lr;
-          // OAA 僅限亞洲14國（原邏輯）：依目的地地區開／關
-          Q.plans.forEach(function (p) { if (p.life && p.life.enabled) p.life.oaa = (lr === 'asia14'); });
-          var sel = form.querySelector('[data-k="lifeRegion"]');
-          if (sel) sel.value = lr;
-        }
+        if (window.LIFE_RATES) applyLifeRegion(LIFE_RATES.guessLifeRegion(Q.destination), Q.lifeRegion);
       }
     }
     if (/\.name$/.test(k) && /^plans\.\d+\.name$/.test(k)) {
@@ -878,6 +915,7 @@
 
   function refreshDerived() {
     syncCardUI();
+    syncOaaUI();
     // 起迄日 → 天數（滿24小時算一天）；必須在保費查表前更新
     var dsNow = syncDaysFromDates();
     updateDaysDisplay(dsNow);

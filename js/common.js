@@ -206,6 +206,14 @@
     return Number(life && life.childOh1Wan) === 120 ? 120 : 60;
   }
 
+  /** 人壽是否加保 OAA：國外其他不可投保；舊連結／舊稿沒有旗標時，亞洲14國視為加保 */
+  function lifeOaaIncluded(life, quote) {
+    if (!life || !life.enabled) return false;
+    if (quote && quote.lifeRegion === 'other') return false;
+    if (life.oaa === undefined || life.oaa === null) return true;
+    return !!life.oaa;
+  }
+
   /** 計算單一方案所有顯示用數值（單位：元） */
   function computePlan(plan, quote) {
     var life = plan.life || {};
@@ -222,7 +230,7 @@
       L.hospital = isSet(life.hospitalYuan) ? num(life.hospitalYuan) : L.oh1 * LIFE_OH1_RATIO.hospital * region;
       L.outpatient = isSet(life.outpatientYuan) ? num(life.outpatientYuan) : L.oh1 * LIFE_OH1_RATIO.outpatient * region;
       L.er = isSet(life.erYuan) ? num(life.erYuan) : L.oh1 * LIFE_OH1_RATIO.er * region;
-      L.oaa = !!life.oaa && quote.lifeRegion !== 'other'; // OAA 僅限亞洲14國
+      L.oaa = lifeOaaIncluded(life, quote);
       L.premium = num(life.premium);
     } else if (L.enabled) {
       L.at1 = num(life.at1Wan) * 10000;
@@ -231,7 +239,7 @@
       L.hospital = isSet(life.hospitalYuan) ? num(life.hospitalYuan) : L.oh1 * LIFE_OH1_RATIO.hospital * region;
       L.outpatient = isSet(life.outpatientYuan) ? num(life.outpatientYuan) : L.oh1 * LIFE_OH1_RATIO.outpatient * region;
       L.er = isSet(life.erYuan) ? num(life.erYuan) : L.oh1 * LIFE_OH1_RATIO.er * region;
-      L.oaa = !!life.oaa && quote.lifeRegion !== 'other'; // OAA 僅限亞洲14國
+      L.oaa = lifeOaaIncluded(life, quote);
       L.premium = num(life.premium);
     } else {
       L.at1 = L.oh1 = L.mr = L.hospital = L.outpatient = L.er = L.premium = 0; L.oaa = false;
@@ -464,7 +472,7 @@
     if (c.er) h += row('海外突發疾病 急診', fmtYuan(c.er), bracket(on, '每日最高 ' + fmtShort(L.er), fmtShort(P.er), pOn));
     if (c.accidentMedical) h += row('意外醫療', fmtYuan(c.accidentMedical), bracket(on, L.child ? 'MRC ' + fmtShort(L.mrc) : fmtShort(L.mr), fmtShort(P.accidentMedical), pOn),
       on ? (L.child ? '人壽兒童傷害醫療 MRC・每一事故最高' : '人壽每一事故最高') : '');
-    if (on && L.oaa) h += '<div class="oaa-chip">✈ 人壽另含 OAA 海外醫療專機運送（實物給付）</div>';
+    if (on && L.oaa) h += row('海外醫療專機運送（OAA）', '實物給付', '（人壽附約）');
     h += '</section>';
 
     if (pOn) {
@@ -532,6 +540,8 @@
       notes.push((childQ ? '人壽海外突發疾病（OH1）依所選保額' : '人壽海外突發疾病（OH1）與意外醫療（MR）各為 AT1 保額之 10%') +
         (pct !== 100 ? '；人壽住院／門診／急診限額已含 ' + esc(quote.destination || '') + ' ' + pct + '% 地區調整' : '') +
         '；人壽門診、急診為每日最高。');
+      var anyOaa = (quote.plans || []).some(function (p) { return lifeOaaIncluded(p.life, quote); });
+      if (anyOaa) notes.push('人壽另含 OAA 海外醫療專機運送附約（實物給付；僅亞洲14國可投保）。');
     }
     if (anyProp) notes.push('產險門診為住院額度 2%、急診為 5%（保期內最高）。');
     (quote.extraNotes || []).forEach(function (n) { if (n) notes.push(n); });
@@ -934,7 +944,7 @@
     detectDomestic: detectDomestic, DOMESTIC_WARNING: DOMESTIC_WARNING,
     AGE_BANDS: AGE_BANDS, ageInfo: ageInfo, isChildQuote: isChildQuote, childOh1Wan: childOh1Wan,
     CHILD_MRC_WAN: CHILD_MRC_WAN, CHILD_OH1_OPTIONS: CHILD_OH1_OPTIONS, propertyAgeCheck: propertyAgeCheck,
-    isCardQuote: isCardQuote, renderNotes: renderNotes, displayTagline: displayTagline, schengenBadge: schengenBadge, cardPresets: cardPresets, cardPresetByCombo: cardPresetByCombo, cardDefaultCombo: cardDefaultCombo,
+    isCardQuote: isCardQuote, lifeOaaIncluded: lifeOaaIncluded, renderNotes: renderNotes, displayTagline: displayTagline, schengenBadge: schengenBadge, cardPresets: cardPresets, cardPresetByCombo: cardPresetByCombo, cardDefaultCombo: cardDefaultCombo,
     cardAddonQuote: cardAddonQuote, CARD_SOURCE: CARD_SOURCE,
     BRAND: BRAND, renderBrand: renderBrand, brandLogoReady: function () { return brandLogoReady; },
     renderQuote: renderQuote, renderPlanCard: renderPlanCard, premiumParts: premiumParts, premiumFormula: premiumFormula, covSource: covSource, planNothingInsured: planNothingInsured, titleFor: titleFor, esc: esc, niceText: niceText

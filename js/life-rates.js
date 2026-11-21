@@ -96,7 +96,7 @@
     var days = Number(quote.days);
     var rateType = quote.lifeRateType || 'agency';
     var region = quote.lifeRegion || guessLifeRegion(quote.destination);
-    var oaa = !!life.oaa;
+    var oaa = (life.oaa === undefined || life.oaa === null) ? true : !!life.oaa; // 舊稿無旗標＝加保
     // 國外其他（美加／歐洲／紐澳等）：無 OAA；保費 = 亞洲14國表 − OAA（GPTA 2026-11-20 實測）
     var otherRegion = region === 'other';
     var minusOaa = otherRegion || (region === 'asia14' && !oaa);
